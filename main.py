@@ -306,8 +306,6 @@ def plot(input):
     plot_points(ax, input["main"]["points"])
     plot_labels(ax, input["main"]["labels"])
 
-    plt.show()
-
 
 def main():
     args = parse_arguments()
@@ -319,6 +317,10 @@ def main():
     convert_input_values(input)
     validate_input_values(input)
     plot(input)
+    if args.output:
+        plt.savefig(args.output, format="png")
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":
