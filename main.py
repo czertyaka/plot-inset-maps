@@ -325,17 +325,17 @@ def plot(input):
     landuse_gdf = download_landuse_gdf(bbox)
 
     layers = [
+        {"gdf": grass_gdf, "style": {"facecolor": "greenyellow", "zorder": 0}},
+        {"gdf": forest_gdf, "style": {"facecolor": "palegreen", "zorder": 0}},
+        {"gdf": landuse_gdf, "style": {"color": "lightgray", "zorder": 0}},
         {
             "gdf": water_gdf,
             "style": {
                 "facecolor": "lightskyblue",
                 "edgecolor": "deepskyblue",
-                "zorder": 3,
+                "zorder": 0,
             },
         },
-        {"gdf": grass_gdf, "style": {"facecolor": "greenyellow", "zorder": 1}},
-        {"gdf": forest_gdf, "style": {"facecolor": "palegreen", "zorder": 2}},
-        {"gdf": landuse_gdf, "style": {"color": "lightgray", "zorder": 2}},
     ]
     plot_basemap(ax, layers)
     plot_scalebar(ax, bbox)
