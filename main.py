@@ -218,6 +218,17 @@ def download_landuse_gdf(bbox):
     )
 
 
+def calc_image_ratio(bbox):
+    nw = shapely.Point(bbox[3], bbox[0])
+    ne = shapely.Point(bbox[2], bbox[0])
+    sw = shapely.Point(bbox[3], bbox[1])
+    points = geopandas.GeoSeries([nw, ne, sw], crs=4326)
+    points = points.to_crs(5234)
+    height = points[0].distance(points[2])
+    width = points[0].distance(points[1])
+    return height / width
+
+
 def plot_basemap(ax, layers):
     for layer in layers:
         gdf = layer["gdf"]
@@ -276,7 +287,8 @@ def plot(input):
 
     plt.rcParams["font.size"] = 14
 
-    fig, ax = plt.subplots(figsize=(10, 10))
+    ratio = calc_image_ratio(bbox)
+    fig, ax = plt.subplots(figsize=(7 / ratio, 7))
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
     ax.set_facecolor("ivory")
@@ -318,6 +330,7 @@ def main():
     validate_input_values(input)
     plot(input)
     if args.output:
+        plt.tight_layout()
         plt.savefig(args.output, format="png")
     else:
         plt.show()
