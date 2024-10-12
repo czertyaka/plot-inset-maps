@@ -1,4 +1,4 @@
-osmnx
+osmnx==1.*
 matplotlib
 shapely
 geopandas
