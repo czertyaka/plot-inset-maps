@@ -190,7 +190,7 @@ def validate_input_values(input):
             marker["lon"],
             marker["lat"],
         )
-        assert box.contains(p), f"box={box}, point={point}"
+        assert box.contains(p), f"box={box}, point={p}"
     for point in points:
         assert point["name_pos"] in (
             "upper_right",
@@ -201,37 +201,49 @@ def validate_input_values(input):
 
 
 def download_water_gdf(bbox):
-    return osmnx.features_from_bbox(bbox=bbox, tags={"natural": "water"})
+    try:
+        return osmnx.features_from_bbox(bbox=bbox, tags={"natural": "water"})
+    except osmnx._errors.InsufficientResponseError:
+        return None
 
 
 def download_grass_gdf(bbox):
-    return osmnx.features_from_bbox(
-        bbox=bbox,
-        tags={
-            "natural": [
-                "heath",
-                "scrub",
-                "grassland",
-                "shrubbery",
-                "tundra",
-                "moor",
-                "fell",
-            ]
-        },
-    )
+    try:
+        return osmnx.features_from_bbox(
+            bbox=bbox,
+            tags={
+                "natural": [
+                    "heath",
+                    "scrub",
+                    "grassland",
+                    "shrubbery",
+                    "tundra",
+                    "moor",
+                    "fell",
+                ]
+            },
+        )
+    except osmnx._errors.InsufficientResponseError:
+        return None
 
 
 def download_forest_gdf(bbox):
-    return osmnx.features_from_bbox(
-        bbox=bbox, tags={"natural": ["wood", "tree", "tree_row"]}
-    )
+    try:
+        return osmnx.features_from_bbox(
+            bbox=bbox, tags={"natural": ["wood", "tree", "tree_row"]}
+        )
+    except osmnx._errors.InsufficientResponseError:
+        return None
 
 
 def download_landuse_gdf(bbox):
-    return osmnx.features_from_bbox(
-        bbox=bbox,
-        tags={"landuse": True, "highway": True},
-    )
+    try:
+        return osmnx.features_from_bbox(
+            bbox=bbox,
+            tags={"landuse": True, "highway": True},
+        )
+    except osmnx._errors.InsufficientResponseError:
+        return None
 
 
 def calc_image_ratio(bbox):
@@ -248,6 +260,8 @@ def calc_image_ratio(bbox):
 def plot_basemap(ax, layers):
     for layer in layers:
         gdf = layer["gdf"]
+        if gdf is None:
+            continue
         style = layer["style"]
         gdf.plot(ax=ax, **style)
 
