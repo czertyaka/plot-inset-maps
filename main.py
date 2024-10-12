@@ -256,6 +256,20 @@ def plot_points(ax, points):
             text.set_path_effects(stroke_effect)
 
 
+def plot_labels(ax, labels):
+    data = {"text": [], "color": [], "geometry": []}
+    for label in labels:
+        data["geometry"].append(shapely.Point(label["lon"], label["lat"]))
+        data["text"].append(label["text"])
+        data["color"].append(label["color"])
+    if len(labels) > 0:
+        gdf = geopandas.GeoDataFrame(data, crs=4326)
+        for lon, lat, text, color in zip(gdf.geometry.x, gdf.geometry.y, gdf["text"], gdf["color"]):
+            text = ax.text(lon, lat, text, color=color, ha="center")
+            stroke_effect = [path_effects.withStroke(foreground="w", linewidth=2)]
+            text.set_path_effects(stroke_effect)
+
+
 def plot(input):
     bbox = input["main"]["bbox"]
     bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
@@ -290,6 +304,7 @@ def plot(input):
     plot_basemap(ax, layers)
     plot_scalebar(ax, bbox)
     plot_points(ax, input["main"]["points"])
+    plot_labels(ax, input["main"]["labels"])
 
     plt.show()
 
