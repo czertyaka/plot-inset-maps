@@ -95,7 +95,7 @@ def add_input_default_values(input):
 
 def convert_coordinate(coordinate):
     pattern = re.compile("^[0-9]{1,3}°[0-9]{2}'[0-9]{2}(\\.[0-9]+)?\"[NSEW]$")
-    if pattern.match(coordinate):
+    if type(coordinate) == str and pattern.match(coordinate):
         splitted = re.split("[°'\"]", coordinate)
         degree = float(splitted[0])
         minutes = float(splitted[1])
