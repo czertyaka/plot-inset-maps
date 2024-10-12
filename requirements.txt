@@ -1,0 +1,5 @@
+osmnx
+matplotlib
+shapely
+geopandas
+matplotlib-scalebar
