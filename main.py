@@ -324,7 +324,7 @@ def plot_labels(ax, labels):
             text.set_path_effects(stroke_effect)
 
 
-def make_inset_ax(base_ax, base_bbox, inset_map):
+def make_inset_ax(base_ax, inset_map):
     bbox = inset_map["map"]["bbox"]
     bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
 
@@ -335,11 +335,11 @@ def make_inset_ax(base_ax, base_bbox, inset_map):
     dy = layout["scale"]
 
     ax = base_ax.inset_axes(
-        bounds=[x, y, dx, dy], xlim=(bbox[3], bbox[2]), ylim=(bbox[1], bbox[0])
+        bounds=[x, y, dx, dy], xlim=(bbox[3], bbox[2]), ylim=(bbox[1], bbox[0]),
     )
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
-    base_ax.indicate_inset_zoom(ax, edgecolor="black")
+    base_ax.indicate_inset_zoom(ax, edgecolor="red")
     return ax
 
 
@@ -381,7 +381,7 @@ def plot(input):
     plot_labels(ax, input["main"]["labels"])
 
     for inset_map in input["inset_maps"]:
-        inset_ax = make_inset_ax(ax, bbox, inset_map)
+        inset_ax = make_inset_ax(ax, inset_map)
         plot_basemap(inset_ax, layers)
         plot_points(inset_ax, inset_map["map"]["points"])
         plot_labels(inset_ax, inset_map["map"]["labels"])
