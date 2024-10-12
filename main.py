@@ -85,12 +85,15 @@ def add_input_default_values(input):
         input["inset_maps"] = []
     maps = [input["main"]]
     for map in input["inset_maps"]:
-        maps.append(map)
+        maps.append(map["map"])
     for map in maps:
         if "points" not in map.keys():
             map["points"] = []
         if "labels" not in map.keys():
             map["labels"] = []
+        for label in map["labels"]:
+            if "color" not in label.keys():
+                label["color"] = "black"
 
 
 def convert_coordinate(coordinate):
@@ -166,9 +169,9 @@ def validate_input_values(input):
             inset_map["map"]["bbox"]["north"],
         )
         layout = inset_map["layout"]
-        assert layout["x"] > 0, f"x={layout['x']}"
-        assert layout["y"] > 0, f"x={layout['y']}"
-        assert layout["scale"] > 0, f"x={layout['scale']}"
+        assert layout["x"] >= 0 and layout["x"] <= 1, f"x={layout['x']}"
+        assert layout["y"] >= 0 and layout["y"] <= 1, f"x={layout['y']}"
+        assert layout["scale"] > 0 and layout["scale"] < 1, f"x={layout['scale']}"
         assert main_box.contains(inset_box), f"main={main_box}, inset={inset_box}"
         for point in inset_map["map"]["points"]:
             points.append((inset_box, point))
@@ -281,6 +284,27 @@ def plot_labels(ax, labels):
             text.set_path_effects(stroke_effect)
 
 
+def make_inset_ax(base_ax, base_bbox, inset_map):
+    bbox = inset_map["map"]["bbox"]
+    bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
+
+    layout = inset_map["layout"]
+    x = layout["x"]
+    y = layout["y"]
+    dx = layout["scale"]
+    dy = layout["scale"]
+
+    ax = base_ax.inset_axes(
+        bounds=[x, y, dx, dy],
+        xlim=(bbox[3], bbox[2]),
+        ylim=(bbox[1], bbox[0])
+    )
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
+    base_ax.indicate_inset_zoom(ax, edgecolor="black")
+    return ax
+
+
 def plot(input):
     bbox = input["main"]["bbox"]
     bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
@@ -317,6 +341,12 @@ def plot(input):
     plot_scalebar(ax, bbox)
     plot_points(ax, input["main"]["points"])
     plot_labels(ax, input["main"]["labels"])
+
+    for inset_map in input["inset_maps"]:
+        inset_ax = make_inset_ax(ax, bbox, inset_map)
+        plot_basemap(inset_ax, layers)
+        plot_points(inset_ax, inset_map["map"]["points"])
+        plot_labels(inset_ax, inset_map["map"]["labels"])
 
 
 def main():
