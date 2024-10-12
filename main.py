@@ -241,12 +241,17 @@ def plot_scalebar(ax, bbox):
 
 
 def plot_points(ax, points):
-    points_shapely = []
+    data = {"names": [], "geometry": []}
     for point in points:
-        points_shapely.append(shapely.Point(point["lon"], point["lat"]))
+        data["geometry"].append(shapely.Point(point["lon"], point["lat"]))
+        data["names"].append(point["name"])
     if len(points) > 0:
-        gdf = geopandas.GeoSeries(points_shapely, crs=4326)
+        gdf = geopandas.GeoDataFrame(data, crs=4326)
         gdf.plot(ax=ax, color="red", edgecolor="black", zorder=4)
+        offset_lon = (ax.get_xlim()[1] - ax.get_xlim()[0]) / 100
+        offset_lat = (ax.get_ylim()[1] - ax.get_ylim()[0]) / 100
+        for lon, lat, name in zip(gdf.geometry.x, gdf.geometry.y, gdf["names"]):
+            ax.text(lon + offset_lon, lat + offset_lat, name)
 
 
 def plot(input):
