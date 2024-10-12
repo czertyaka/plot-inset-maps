@@ -276,7 +276,7 @@ def plot_scalebar(ax, bbox):
         dx=distance_meters,
         scale_loc="right",
         box_alpha=0,
-        scale_style="geography",
+        bar_style="geography",
     )
     ax.add_artist(scalebar)
 
