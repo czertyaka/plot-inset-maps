@@ -74,7 +74,7 @@ def validate_input_structure(input):
         assert "name" in point.keys(), f"point={point}"
     for label in labels:
         for key in label.keys():
-            assert key in ("lon", "lat", "text"), f"label={label}"
+            assert key in ("lon", "lat", "text", "color"), f"label={label}"
         assert "lon" in label.keys(), f"label={label}"
         assert "lat" in label.keys(), f"label={label}"
         assert "text" in label.keys(), f"label={label}"
@@ -127,7 +127,7 @@ def convert_input_values(input):
         point["lon"] = convert_coordinate(point["lon"])
     for label in labels:
         label["lat"] = convert_coordinate(label["lat"])
-        label["lon"] = float(label["lon"])
+        label["lon"] = convert_coordinate(label["lon"])
     for layout in layouts:
         layout["x"] = float(layout["x"])
         layout["y"] = float(layout["y"])
