@@ -240,6 +240,15 @@ def plot_scalebar(ax, bbox):
     ax.add_artist(scalebar)
 
 
+def plot_points(ax, points):
+    points_shapely = []
+    for point in points:
+        points_shapely.append(shapely.Point(point["lon"], point["lat"]))
+    if len(points) > 0:
+        gdf = geopandas.GeoSeries(points_shapely, crs=4326)
+        gdf.plot(ax=ax, color="red", edgecolor="black", zorder=4)
+
+
 def plot(input):
     bbox = input["main"]["bbox"]
     bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
@@ -262,14 +271,19 @@ def plot(input):
     layers = [
         {
             "gdf": water_gdf,
-            "style": {"facecolor": "lightskyblue", "edgecolor": "deepskyblue"},
+            "style": {
+                "facecolor": "lightskyblue",
+                "edgecolor": "deepskyblue",
+                "zorder": 3,
+            },
         },
-        {"gdf": grass_gdf, "style": {"facecolor": "greenyellow"}},
-        {"gdf": forest_gdf, "style": {"facecolor": "palegreen"}},
-        {"gdf": landuse_gdf, "style": {"color": "lightgray"}},
+        {"gdf": grass_gdf, "style": {"facecolor": "greenyellow", "zorder": 1}},
+        {"gdf": forest_gdf, "style": {"facecolor": "palegreen", "zorder": 2}},
+        {"gdf": landuse_gdf, "style": {"color": "lightgray", "zorder": 2}},
     ]
     plot_basemap(ax, layers)
     plot_scalebar(ax, bbox)
+    plot_points(ax, input["main"]["points"])
 
     plt.show()
 
