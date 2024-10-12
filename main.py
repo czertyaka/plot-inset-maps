@@ -276,10 +276,34 @@ def plot_points(ax, points):
     if len(points) > 0:
         gdf = geopandas.GeoDataFrame(data, crs=4326)
         gdf.plot(ax=ax, color="red", edgecolor="black", zorder=4)
-        offset_lon = (ax.get_xlim()[1] - ax.get_xlim()[0]) / 100
-        offset_lat = (ax.get_ylim()[1] - ax.get_ylim()[0]) / 100
-        for lon, lat, name in zip(gdf.geometry.x, gdf.geometry.y, gdf["names"]):
-            text = ax.text(lon + offset_lon, lat + offset_lat, name)
+        offset_px_x = 5
+        offset_px_y = 5
+        for lon, lat, name, name_pos in zip(
+            gdf.geometry.x, gdf.geometry.y, gdf["names"], gdf["name_pos"]
+        ):
+            x, y = ax.transData.transform((lon, lat))
+            if name_pos == "upper_right":
+                ha = "left"
+                va = "bottom"
+                x += offset_px_x
+                y += offset_px_y
+            elif name_pos == "upper_left":
+                ha = "right"
+                va = "bottom"
+                x -= offset_px_x
+                y += offset_px_y
+            elif name_pos == "lower_right":
+                ha = "left"
+                va = "top"
+                x += offset_px_x
+                y -= offset_px_y
+            else:
+                ha = "right"
+                va = "top"
+                x -= offset_px_x
+                y -= offset_px_y
+            x, y = ax.transData.inverted().transform((x, y))
+            text = ax.text(x, y, name, ha=ha, va=va)
             stroke_effect = [path_effects.withStroke(foreground="w", linewidth=2)]
             text.set_path_effects(stroke_effect)
 
