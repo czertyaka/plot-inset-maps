@@ -68,7 +68,7 @@ def validate_input_structure(input):
             [labels.append(label) for label in map["labels"]]
     for point in points:
         for key in point.keys():
-            assert key in ("lon", "lat", "name"), f"point={point}"
+            assert key in ("lon", "lat", "name", "name_pos"), f"point={point}"
         assert "lon" in point.keys(), f"point={point}"
         assert "lat" in point.keys(), f"point={point}"
         assert "name" in point.keys(), f"point={point}"
@@ -89,6 +89,9 @@ def add_input_default_values(input):
     for map in maps:
         if "points" not in map.keys():
             map["points"] = []
+        for point in map["points"]:
+            if "name_pos" not in point.keys():
+                point["name_pos"] = "upper_right"
         if "labels" not in map.keys():
             map["labels"] = []
         for label in map["labels"]:
@@ -142,6 +145,7 @@ def validate_coordinate(coordinate):
 
 
 def validate_input_values(input):
+    markers = []
     points = []
     validate_coordinate(input["main"]["bbox"]["west"])
     validate_coordinate(input["main"]["bbox"]["south"])
@@ -154,9 +158,10 @@ def validate_input_values(input):
         input["main"]["bbox"]["north"],
     )
     for point in input["main"]["points"]:
-        points.append((main_box, point))
+        points.append(point)
+        markers.append((main_box, point))
     for label in input["main"]["labels"]:
-        points.append((main_box, label))
+        markers.append((main_box, label))
     for inset_map in input["inset_maps"]:
         validate_coordinate(inset_map["map"]["bbox"]["west"])
         validate_coordinate(inset_map["map"]["bbox"]["south"])
@@ -174,17 +179,25 @@ def validate_input_values(input):
         assert layout["scale"] > 0 and layout["scale"] < 1, f"x={layout['scale']}"
         assert main_box.contains(inset_box), f"main={main_box}, inset={inset_box}"
         for point in inset_map["map"]["points"]:
-            points.append((inset_box, point))
+            points.append(point)
+            markers.append((inset_box, point))
         for label in inset_map["map"]["labels"]:
-            points.append((inset_box, label))
-    for box, point in points:
-        validate_coordinate(point["lat"])
-        validate_coordinate(point["lon"])
+            markers.append((inset_box, label))
+    for box, marker in markers:
+        validate_coordinate(marker["lat"])
+        validate_coordinate(marker["lon"])
         p = shapely.Point(
-            point["lon"],
-            point["lat"],
+            marker["lon"],
+            marker["lat"],
         )
         assert box.contains(p), f"box={box}, point={point}"
+    for point in points:
+        assert point["name_pos"] in (
+            "upper_right",
+            "upper_left",
+            "lower_right",
+            "lower_left",
+        ), f"name_pos={point['name_pos']}"
 
 
 def download_water_gdf(bbox):
@@ -255,10 +268,11 @@ def plot_scalebar(ax, bbox):
 
 
 def plot_points(ax, points):
-    data = {"names": [], "geometry": []}
+    data = {"names": [], "name_pos": [], "geometry": []}
     for point in points:
         data["geometry"].append(shapely.Point(point["lon"], point["lat"]))
         data["names"].append(point["name"])
+        data["name_pos"].append(point["name_pos"])
     if len(points) > 0:
         gdf = geopandas.GeoDataFrame(data, crs=4326)
         gdf.plot(ax=ax, color="red", edgecolor="black", zorder=4)
@@ -278,7 +292,9 @@ def plot_labels(ax, labels):
         data["color"].append(label["color"])
     if len(labels) > 0:
         gdf = geopandas.GeoDataFrame(data, crs=4326)
-        for lon, lat, text, color in zip(gdf.geometry.x, gdf.geometry.y, gdf["text"], gdf["color"]):
+        for lon, lat, text, color in zip(
+            gdf.geometry.x, gdf.geometry.y, gdf["text"], gdf["color"]
+        ):
             text = ax.text(lon, lat, text, color=color, ha="center")
             stroke_effect = [path_effects.withStroke(foreground="w", linewidth=2)]
             text.set_path_effects(stroke_effect)
@@ -295,9 +311,7 @@ def make_inset_ax(base_ax, base_bbox, inset_map):
     dy = layout["scale"]
 
     ax = base_ax.inset_axes(
-        bounds=[x, y, dx, dy],
-        xlim=(bbox[3], bbox[2]),
-        ylim=(bbox[1], bbox[0])
+        bounds=[x, y, dx, dy], xlim=(bbox[3], bbox[2]), ylim=(bbox[1], bbox[0])
     )
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
