@@ -251,15 +251,16 @@ def plot_points(ax, points):
         offset_lon = (ax.get_xlim()[1] - ax.get_xlim()[0]) / 100
         offset_lat = (ax.get_ylim()[1] - ax.get_ylim()[0]) / 100
         for lon, lat, name in zip(gdf.geometry.x, gdf.geometry.y, gdf["names"]):
-            ax.text(lon + offset_lon, lat + offset_lat, name)
+            text = ax.text(lon + offset_lon, lat + offset_lat, name)
+            stroke_effect = [path_effects.withStroke(foreground="w", linewidth=2)]
+            text.set_path_effects(stroke_effect)
 
 
 def plot(input):
     bbox = input["main"]["bbox"]
     bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
 
-    stroke_effect = [path_effects.withStroke(foreground="w")]
-    plt.rcParams["path.effects"] = stroke_effect
+    plt.rcParams["font.size"] = 14
 
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.xaxis.set_visible(False)
