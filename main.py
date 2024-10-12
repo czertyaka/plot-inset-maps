@@ -176,7 +176,7 @@ def validate_input_values(input):
         layout = inset_map["layout"]
         assert layout["x"] >= 0 and layout["x"] <= 1, f"x={layout['x']}"
         assert layout["y"] >= 0 and layout["y"] <= 1, f"x={layout['y']}"
-        assert layout["scale"] > 0 and layout["scale"] < 1, f"x={layout['scale']}"
+        assert layout["scale"] > 0, f"x={layout['scale']}"
         assert main_box.contains(inset_box), f"main={main_box}, inset={inset_box}"
         for point in inset_map["map"]["points"]:
             points.append(point)
@@ -343,13 +343,24 @@ def make_inset_ax(base_ax, inset_map):
     bbox = (bbox["north"], bbox["south"], bbox["east"], bbox["west"])
 
     layout = inset_map["layout"]
-    x = layout["x"]
-    y = layout["y"]
-    dx = layout["scale"]
-    dy = layout["scale"]
+
+    def calc_start_coordinate(limits, factor):
+        lower, upper = limits
+        diff = upper - lower
+        return lower + factor * diff
+
+    x = calc_start_coordinate(base_ax.get_xlim(), layout["x"])
+    y = calc_start_coordinate(base_ax.get_ylim(), layout["y"])
+
+    def calc_scaled_length(start, end, scale):
+        return (end - start) * scale
+
+    dx = calc_scaled_length(bbox[3], bbox[2], layout["scale"])
+    dy = calc_scaled_length(bbox[1], bbox[0], layout["scale"])
 
     ax = base_ax.inset_axes(
         bounds=[x, y, dx, dy], xlim=(bbox[3], bbox[2]), ylim=(bbox[1], bbox[0]),
+        transform=base_ax.transData
     )
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
