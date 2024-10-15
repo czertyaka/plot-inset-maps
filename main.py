@@ -364,6 +364,7 @@ def make_inset_ax(base_ax, inset_map):
     )
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
+    ax.set_facecolor("ivory")
     _, connections = base_ax.indicate_inset_zoom(ax, edgecolor="red")
     for connection in connections:
         connection.set(linestyle="--")
